@@ -1,0 +1,8 @@
+# Python cache
+__pycache__/
+*.pyc
+fly.toml
+/.venv/Lib/site-packages/_distutils_hack
+/.venv/Lib/site-packages/_pytest
+/.venv/Lib/site-packages/aiosmtplib-4.0.2.dist-info
+/.venv

@@ -20,52 +20,51 @@ poetry install
 Створюємо віртуальне середовище.
 
 python3 -m venv .venv
-source .venv/bin/activate   # для Linux / Mac
+source .venv/bin/activate # для Linux / Mac
 
 # або
 
-.venv\Scripts\activate   # для Windows PowerShell
+.venv\Scripts\activate # для Windows PowerShell
 
 Встановлюємо бібліотеки
 
 pip install -r requirements.txt
 
 ### 🔄 Оновити контейнер після змін
+
 docker-compose down
 docker-compose up --build
 
 docker-compose logs -f web
 
 Запустіть контейнери у фоновому режимі. Переконайтеся, що всі три контейнери (web, db, redis) працюють:
-docker compose up -d   
+docker compose up -d  
 docker ps
 
 ### 🗄 Видаляємо одразу всі контейнери
-docker-compose down -v
 
+docker-compose down -v
 
 Підключіться до PostgreSQL:
 docker exec -it python-project-db-1 psql -U postgres -d photoshare
 
 ### Alembic migration
+
 Якщо Alembic міграція не запускається то ми можемо виправити:
 
 Перевірити всі “head” міграції:
 
 docker-compose exec web alembic heads
 
-
 Це покаже всі поточні вершини міграцій. Приклад виводу:
 
 rev1 -> description1
 rev2 -> description2
 
-
 Вибрати конкретну “head” або об’єднати
 Якщо ви хочете застосувати всі міграції, можна об’єднати гілки за допомогою merge:
 
 docker-compose exec web alembic merge -m "merge heads" <rev1> <rev2>
-
 
 <rev1> і <rev2> — це ревізії, які показалися в alembic heads. Alembic створить нову міграцію, яка об’єднує дві гілки.
 
@@ -73,15 +72,14 @@ docker-compose exec web alembic merge -m "merge heads" <rev1> <rev2>
 
 docker-compose exec web alembic upgrade head
 
-
 Це створить таблицю users та всі інші, які були в міграціях.
 
-
 ### Увійти в контейнер PostgreSQL
+
 psql -h localhost -U postgres -d photoshare
 
 1️⃣ Показати всі записи
-SELECT * FROM users;
+SELECT \* FROM users;
 
 2️⃣ Показати структуру таблиці
 \d users
@@ -94,7 +92,7 @@ SELECT * FROM users;
 \d alembic_version
 
 3️⃣ Пошук конкретного користувача
-SELECT * FROM users WHERE email='natka@example.com';
+SELECT \* FROM users WHERE email='natka@example.com';
 
 Коли попрацювали і зробили якісь зміни і нам треба зробити PR то ми виконуємо крок покрокові:
 
@@ -151,6 +149,7 @@ PhotoShare — це REST API сервіс для збереження, обмі�
 Передбачено ролі користувачів, коментарі, рейтинги, генерація трансформованих зображень і QR-кодів, а також модерація та адміністрування.
 
 ### 2️⃣ Основні можливості
+
 ✔ Аутентифікація (JWT)
 
 Реєстрація / логін
@@ -238,7 +237,8 @@ Docker / Docker Compose
 Pytest
 
 ### 4️⃣ Встановлення та запуск
-🔧 1. Клонування репозиторію 
+
+🔧 1. Клонування репозиторію
 git clone https://github.com/Your-Natka/Python-project.git
 cd Python-project
 
@@ -250,9 +250,9 @@ CLOUDINARY_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
 
-### 🔧  Запуск через Docker Compose
-docker-compose up --build
+### 🔧 Запуск через Docker Compose
 
+docker-compose up --build
 
 API буде доступне на:
 👉 http://localhost:8000
@@ -261,21 +261,22 @@ API буде доступне на:
 👉 http://localhost:8000/docs
 
 ### Дерево проекту
+
 ├── Dockerfile
 ├── README.md
 ├── alembic
-│   └── ...
+│ └── ...
 ├── app
-│   ├── main.py
-│   ├── database
-│   ├── repository
-│   ├── routes
-│   ├── services
-│   ├── schemas.py
-│   └── ...
+│ ├── main.py
+│ ├── database
+│ ├── repository
+│ ├── routes
+│ ├── services
+│ ├── schemas.py
+│ └── ...
 ├── docker-compose.yml
 ├── tests
-│   └── ...
+│ └── ...
 └── ...
 
 ### 6️⃣ Аутентифікація
@@ -293,18 +294,18 @@ POST /auth/signup
 Content-Type: application/json
 
 {
-  "username": "natusia",
-  "email": "natusia@example.com",
-  "password": "StrongPassword123!"
+"username": "natusia",
+"email": "natusia@example.com",
+"password": "StrongPassword123!"
 }
 
 Приклад відповіді:
 {
-  "id": 1,
-  "username": "natusia",
-  "email": "natusia@example.com",
-  "role": "admin",
-  "created_at": "2025-01-01T12:00:00"
+"id": 1,
+"username": "natusia",
+"email": "natusia@example.com",
+"role": "admin",
+"created_at": "2025-01-01T12:00:00"
 }
 
 Відповідь:
@@ -324,15 +325,15 @@ POST /auth/login
 Content-Type: application/json
 
 {
-  "username": "natusia",
-  "password": "StrongPassword123!"
+"username": "natusia",
+"password": "StrongPassword123!"
 }
 
 Приклад відповіді:
 {
-  "access_token": "eyJhbGci...",
-  "refresh_token": "eyJhbGc...",
-  "token_type": "bearer"
+"access_token": "eyJhbGci...",
+"refresh_token": "eyJhbGc...",
+"token_type": "bearer"
 }
 
 🔹 {POST} api/auth/logout — Вихід
@@ -345,7 +346,7 @@ Authorization: Bearer <access_token>
 
 Приклад відповіді:
 {
-  "message": "Successfully logged out"
+"message": "Successfully logged out"
 }
 
 🔹 {POST} api/auth/refresh_token
@@ -360,13 +361,13 @@ POST /auth/refresh
 Content-Type: application/json
 
 {
-  "refresh_token": "eyJhbGc..."
+"refresh_token": "eyJhbGc..."
 }
 
 Приклад відповіді:
 {
-  "access_token": "new_access_token",
-  "token_type": "bearer"
+"access_token": "new_access_token",
+"token_type": "bearer"
 }
 🔹 {GET} /api/auth/confirmed_email/{token} — Confirm Email
 
@@ -386,15 +387,14 @@ Content-Type: application/json
 "email": "nataly@example.com"
 }
 
-
 ### Ролі та залежності (Depends)
 
 У проєкті використовуються ролі:
 
-Роль	             Можливості
-user	             CRUD своїх фото, коментарі, рейтинг
-moderator	         видаляти коментарі і рейтинги
-admin	             CRUD усіх фото, бан користувачів
+Роль Можливості
+user CRUD своїх фото, коментарі, рейтинг
+moderator видаляти коментарі і рейтинги
+admin CRUD усіх фото, бан користувачів
 
 ### 7️⃣ Posts
 
@@ -427,16 +427,15 @@ file=@photo.jpg
 description="Моя перша світлина"
 tags="nature,flowers"
 
-
 Приклад відповіді:
 
 {
-  "id": 10,
-  "url": "https://res.cloudinary.com/.../photo.jpg",
-  "description": "Моя перша світлина",
-  "tags": ["nature", "flowers"],
-  "owner": "natusia",
-  "created_at": "2025-11-15T12:00:00"
+"id": 10,
+"url": "https://res.cloudinary.com/.../photo.jpg",
+"description": "Моя перша світлина",
+"tags": ["nature", "flowers"],
+"owner": "natusia",
+"created_at": "2025-11-15T12:00:00"
 }
 
 🔹 GET /api/posts/my_posts — Read All User Posts
@@ -446,14 +445,14 @@ tags="nature,flowers"
 Приклад відповіді:
 
 [
-  {
-    "id": 10,
-    "url": "...",
-    "description": "Моя перша світлина",
-    "tags": ["nature", "flowers"],
-    "created_at": "2025-11-15T12:00:00"
-  },
-  ...
+{
+"id": 10,
+"url": "...",
+"description": "Моя перша світлина",
+"tags": ["nature", "flowers"],
+"created_at": "2025-11-15T12:00:00"
+},
+...
 ]
 
 🔹 {GET} /api/posts/all — Read All Posts
@@ -488,7 +487,6 @@ tags="nature,flowers"
 
 Пошук фото за ключовим словом у описі.
 
-
 🔹 {DELETE} api/posts/{post_id}
 
 Видаляє світлину:
@@ -506,18 +504,17 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "description": "Оновлений опис фото"
+"description": "Оновлений опис фото"
 }
-
 
 Приклад відповіді:
 
 {
-  "id": 10,
-  "description": "Оновлений опис фото",
-  "url": "...",
-  "tags": ["nature", "flowers"],
-  "owner": "natusia"
+"id": 10,
+"description": "Оновлений опис фото",
+"url": "...",
+"tags": ["nature", "flowers"],
+"owner": "natusia"
 }
 
 ### 8️⃣ Transformations
@@ -536,9 +533,8 @@ post_id — ID поста, який потрібно трансформуват�
 Body:
 
 {
-  "transformation": "rotate_90"
+"transformation": "rotate_90"
 }
-
 
 Приклад запиту:
 
@@ -547,17 +543,16 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "transformation": "rotate_90"
+"transformation": "rotate_90"
 }
-
 
 Приклад відповіді:
 
 {
-  "transformed_id": 100,
-  "post_id": 10,
-  "url": "https://res.cloudinary.com/.../rotate_90/photo.jpg",
-  "created_at": "2025-11-15T12:30:00"
+"transformed_id": 100,
+"post_id": 10,
+"url": "https://res.cloudinary.com/.../rotate_90/photo.jpg",
+"created_at": "2025-11-15T12:30:00"
 }
 
 POST /api/transformations/qr/{post_id} — Show QR
@@ -576,9 +571,9 @@ Authorization: Bearer <token>
 Приклад відповіді:
 
 {
-  "post_id": 10,
-  "qr_code_url": "/media/qrcodes/100.png",
-  "transformed_url": "https://res.cloudinary.com/.../rotate_90/photo.jpg"
+"post_id": 10,
+"qr_code_url": "/media/qrcodes/100.png",
+"transformed_url": "https://res.cloudinary.com/.../rotate_90/photo.jpg"
 }
 
 Пояснення:
@@ -591,39 +586,38 @@ transformed_url — URL трансформованого зображення
 Приклад -> КРУГЛА ФОТО
 
 {
-  "circle": {
-    "use_filter": true,
-    "height": 400,
-    "width": 400
-  },
-  "effect": {},
-  "resize": {},
-  "text": {},
-  "rotate": {}
+"circle": {
+"use_filter": true,
+"height": 400,
+"width": 400
+},
+"effect": {},
+"resize": {},
+"text": {},
+"rotate": {}
 }
 
 Зміни PATCH body у Swagger на:
 
 {
-  "circle": {
-    "use_filter": true,
-    "height": 400,
-    "width": 400
-  },
-  "effect": {
-    "use_filter": false
-  },
-  "resize": {
-    "use_filter": false
-  },
-  "text": {
-    "use_filter": false
-  },
-  "rotate": {
-    "use_filter": false
-  }
+"circle": {
+"use_filter": true,
+"height": 400,
+"width": 400
+},
+"effect": {
+"use_filter": false
+},
+"resize": {
+"use_filter": false
+},
+"text": {
+"use_filter": false
+},
+"rotate": {
+"use_filter": false
 }
-
+}
 
 Тоді backend повинен:
 
@@ -639,48 +633,106 @@ transformed_url — URL трансформованого зображення
 
 "transform_url": "https://res.cloudinary.com/.../transformed_image.png"
 
+🎯 Приклад -> ДОДАТИ БУДЬ-ЯКИЙ ТЕКСТ (до 100 символів)
+.... замість "Hello from the top!" вводимо свій текст .....
+
+{
+"text": {
+"use_filter": true,
+"font_size": 70,
+"text": "Hello from the top!"
+},
+"circle": {
+"use_filter": false,
+"height": 400,
+"width": 400
+},
+"effect": {
+"use_filter": false,
+"art_audrey": false,
+"art_zorro": false,
+"cartoonify": false,
+"blur": false
+},
+"resize": {
+"use_filter": false,
+"crop": false,
+"fill": false,
+"height": 400,
+"width": 400
+},
+"rotate": {
+"use_filter": false,
+"width": 400,
+"degree": 0
+}
+}
+
 🎯 Приклад -> ПОВЕРНУТИ ФОТО НА 45°
 {
 "circle": {
-    "use_filter": true,
-    "height": 400,
-    "width": 400
-  },
-  "effect": {
-    "use_filter": false,
-    "art_audrey": false,
-    "art_zorro": false,
-    "cartoonify": false,
-    "blur": false
-  },
-  "resize": {
-    "use_filter": true,
-    "crop": false,
-    "fill": true,
-    "height": 400,
-    "width": 400
-  },
-  "text": {
-    "use_filter": true,
-    "font_size": 50,
-    "text": "Hello"
-  },
-  "rotate": {
-    "use_filter": true,
-    "width": 400,
-    "degree": 45
-  }
+"use_filter": true,
+"height": 400,
+"width": 400
+},
+"effect": {
+"use_filter": false,
+"art_audrey": false,
+"art_zorro": false,
+"cartoonify": false,
+"blur": false
+},
+"resize": {
+"use_filter": true,
+"crop": false,
+"fill": true,
+"height": 400,
+"width": 400
+},
+"text": {
+"use_filter": true,
+"font_size": 50,
+"text": "Hello"
+},
+"rotate": {
+"use_filter": true,
+"width": 400,
+"degree": 45
+}
 }
 
 🎯 Приклад -> ЗРОБИТИ РАМКУ
 
-Це залежить від твоїх ефектів, але напевно так:
-
 {
-  "effect": {
-    "use_filter": true,
-    "art_zorro": true
-  }
+"circle": {
+"use_filter": false,
+"height": 400,
+"width": 400
+},
+"effect": {
+"use_filter": true,
+"art_audrey": false,
+"art_zorro": true,
+"cartoonify": false,
+"blur": false
+},
+"resize": {
+"use_filter": false,
+"crop": false,
+"fill": false,
+"height": 400,
+"width": 400
+},
+"text": {
+"use_filter": false,
+"font_size": 70,
+"text": ""
+},
+"rotate": {
+"use_filter": false,
+"width": 400,
+"degree": 45
+}
 }
 
 Відповідь API
@@ -688,9 +740,8 @@ transformed_url — URL трансформованого зображення
 Якщо твій endpoint /api/transformations/qr/{post_id} повертає JSON, зазвичай там є поле з посиланням на QR-код, наприклад:
 
 {
-  "qr_code_url": "/media/qrcodes/1.png"
+"qr_code_url": "/media/qrcodes/1.png"
 }
-
 
 Це відносний URL на сервері.
 
@@ -733,9 +784,8 @@ post_id — ID поста, до якого додається коментар
 Body:
 
 {
-  "content": "Дуже гарне фото!"
+"content": "Дуже гарне фото!"
 }
-
 
 Приклад запиту:
 
@@ -744,19 +794,18 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "content": "Дуже гарне фото!"
+"content": "Дуже гарне фото!"
 }
-
 
 Приклад відповіді:
 
 {
-  "comment_id": 15,
-  "post_id": 42,
-  "author_id": 7,
-  "content": "Дуже гарне фото!",
-  "created_at": "2025-01-11T09:12:33",
-  "updated_at": "2025-01-11T09:12:33"
+"comment_id": 15,
+"post_id": 42,
+"author_id": 7,
+"content": "Дуже гарне фото!",
+"created_at": "2025-01-11T09:12:33",
+"updated_at": "2025-01-11T09:12:33"
 }
 
 🔹 PUT /api/comments/edit/{comment_id} — Edit Comment
@@ -766,9 +815,8 @@ Content-Type: application/json
 Body:
 
 {
-  "content": "Виправив текст — все ще чудове фото!"
+"content": "Виправив текст — все ще чудове фото!"
 }
-
 
 Приклад:
 
@@ -777,19 +825,18 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "content": "Виправив текст — все ще чудове фото!"
+"content": "Виправив текст — все ще чудове фото!"
 }
-
 
 Приклад відповіді:
 
 {
-  "comment_id": 15,
-  "post_id": 42,
-  "author_id": 7,
-  "content": "Виправив текст — все ще чудове фото!",
-  "created_at": "2025-01-11T09:12:33",
-  "updated_at": "2025-01-11T09:15:01"
+"comment_id": 15,
+"post_id": 42,
+"author_id": 7,
+"content": "Виправив текст — все ще чудове фото!",
+"created_at": "2025-01-11T09:12:33",
+"updated_at": "2025-01-11T09:15:01"
 }
 
 🔹 DELETE /api/comments/delete/{comment_id} — Delete Comment
@@ -809,11 +856,10 @@ Content-Type: application/json
 DELETE /api/comments/delete/15
 Authorization: Bearer <token>
 
-
 Приклад відповіді:
 
 {
-  "message": "Comment deleted successfully"
+"message": "Comment deleted successfully"
 }
 
 🔹 GET /api/comments/single/{comment_id} — Single Comment
@@ -822,16 +868,15 @@ Authorization: Bearer <token>
 
 GET /api/comments/single/15
 
-
 Приклад відповіді:
 
 {
-  "comment_id": 15,
-  "post_id": 42,
-  "author_id": 7,
-  "content": "Дуже гарне фото!",
-  "created_at": "2025-01-11T09:12:33",
-  "updated_at": "2025-01-11T09:12:33"
+"comment_id": 15,
+"post_id": 42,
+"author_id": 7,
+"content": "Дуже гарне фото!",
+"created_at": "2025-01-11T09:12:33",
+"updated_at": "2025-01-11T09:12:33"
 }
 
 🔹 GET /api/comments/by_author/{user_id} — By User Comments
@@ -840,20 +885,19 @@ GET /api/comments/single/15
 
 GET /api/comments/by_author/7
 
-
 Приклад відповіді:
 
 [
-  {
-    "comment_id": 15,
-    "post_id": 42,
-    "content": "Дуже гарне фото!"
-  },
-  {
-    "comment_id": 18,
-    "post_id": 39,
-    "content": "Цікавий кадр!"
-  }
+{
+"comment_id": 15,
+"post_id": 42,
+"content": "Дуже гарне фото!"
+},
+{
+"comment_id": 18,
+"post_id": 39,
+"content": "Цікавий кадр!"
+}
 ]
 
 🔹 GET /api/comments/post_by_author/{user_id}/{post_id} — By User Post Comments
@@ -862,31 +906,30 @@ GET /api/comments/by_author/7
 
 GET /api/comments/post_by_author/7/42
 
-
 Приклад відповіді:
 
 [
-  {
-    "comment_id": 15,
-    "post_id": 42,
-    "author_id": 7,
-    "content": "Дуже гарне фото!"
-  }
+{
+"comment_id": 15,
+"post_id": 42,
+"author_id": 7,
+"content": "Дуже гарне фото!"
+}
 ]
 
 ### 🔟 Ролі
 
 Таблиця:
 
-Роль	Доступ
-User	свої фото, коментарі
-Moderator	видаляти коментарі/рейтинг
-Admin	повний доступ + бан
+Роль Доступ
+User свої фото, коментарі
+Moderator видаляти коментарі/рейтинг
+Admin повний доступ + бан
 
 🔹 Призначення ролі (ADMIN)
 PATCH /users/make_role/{email}
 {
-  "role": "moderator"
+"role": "moderator"
 }
 
 🔹 Бан користувача (ADMIN)
@@ -903,7 +946,7 @@ User → може оцінювати лише чужі фото
 
 POST /rating/10
 {
-  "value": 5
+"value": 5
 }
 
 🔹 {DELETE} /rating/{id} (moder/admin)
@@ -941,9 +984,9 @@ Authorization: Bearer <token>
 Приклад відповіді:
 
 {
-  "message": "Rating created successfully",
-  "rate": 5,
-  "post_id": 42
+"message": "Rating created successfully",
+"rate": 5,
+"post_id": 42
 }
 
 PUT /api/ratings/edit/{rate_id}/{new_rate} — Edit Rate
@@ -959,13 +1002,12 @@ new_rate — нова оцінка (1–5)
 PUT /api/ratings/edit/10/4
 Authorization: Bearer <token>
 
-
 Відповідь:
 
 {
-  "message": "Rating updated",
-  "old_rate": 5,
-  "new_rate": 4
+"message": "Rating updated",
+"old_rate": 5,
+"new_rate": 4
 }
 
 DELETE /api/ratings/delete/{rate_id} — Delete Rate
@@ -985,11 +1027,10 @@ DELETE /api/ratings/delete/{rate_id} — Delete Rate
 DELETE /api/ratings/delete/10
 Authorization: Bearer <token>
 
-
 Відповідь:
 
 {
-  "message": "Rating deleted"
+"message": "Rating deleted"
 }
 
 GET /api/ratings/all — All Rates
@@ -1007,12 +1048,11 @@ GET /api/ratings/all — All Rates
 GET /api/ratings/all
 Authorization: Bearer <token>
 
-
 Приклад відповіді:
 
 [
-  { "rate_id": 1, "post_id": 10, "user_id": 5, "rate": 4 },
-  { "rate_id": 2, "post_id": 12, "user_id": 8, "rate": 5 }
+{ "rate_id": 1, "post_id": 10, "user_id": 5, "rate": 4 },
+{ "rate_id": 2, "post_id": 12, "user_id": 8, "rate": 5 }
 ]
 
 GET /api/ratings/all_my — All My Rates
@@ -1022,12 +1062,11 @@ GET /api/ratings/all_my — All My Rates
 GET /api/ratings/all_my
 Authorization: Bearer <token>
 
-
 Приклад:
 
 [
-  { "rate_id": 7, "post_id": 33, "rate": 5 },
-  { "rate_id": 8, "post_id": 40, "rate": 3 }
+{ "rate_id": 7, "post_id": 33, "rate": 5 },
+{ "rate_id": 8, "post_id": 40, "rate": 3 }
 ]
 
 GET /api/ratings/user_post/{user_id}/{post_id} — User Rate Post
@@ -1043,12 +1082,13 @@ GET /api/ratings/user_post/12/40
 Відповідь:
 
 {
-  "user_id": 12,
-  "post_id": 40,
-  "rate": 5
+"user_id": 12,
+"post_id": 40,
+"rate": 5
 }
 
 ### Hashtags
+
 POST /api/hashtags/new/ — Create Tag
 
 Створює новий хештег.
@@ -1056,7 +1096,7 @@ POST /api/hashtags/new/ — Create Tag
 Приклад запиту:
 
 {
-  "name": "nature"
+"name": "nature"
 }
 
 Приклад відповіді:
@@ -1145,11 +1185,9 @@ GET /search?q=flower&sort=date
 
 GET /search?q=flower&sort=rating
 
-
 Для модератора:
 
 GET /search/users?username=natusia
-
 
 ### 1️⃣4️⃣ Тести
 
@@ -1198,4 +1236,3 @@ Railway
 Render
 
 ### Контакти
-
