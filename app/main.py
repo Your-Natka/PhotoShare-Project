@@ -1,3 +1,4 @@
+import os
 import redis.asyncio as redis
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends
@@ -26,7 +27,9 @@ app.include_router(trans_router, prefix='/api')
 app.include_router(hashtag_router, prefix='/api')
 app.include_router(comment_router, prefix='/api')
 app.include_router(rating_router, prefix='/api')
-app.mount("/media", StaticFiles(directory="media"), name="media")
+# app.mount("/media", StaticFiles(directory="media"), name="media")
+app.mount("/media", StaticFiles(directory=os.path.join("app", "media")), name="media")
+
 
 
 # --- Root endpoint ---
