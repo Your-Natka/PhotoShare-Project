@@ -17,9 +17,12 @@ COPY alembic ./alembic
 
 
 # Встановлюємо Python-залежності
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini .
 
 # Порт, на якому буде працювати FastAPI
 EXPOSE 8080

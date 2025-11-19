@@ -1,39 +1,45 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 import cloudinary
 
 class Settings(BaseSettings):
-    sqlalchemy_database_url: str
-    postgres_db: str
+    # -------------------- DATABASE --------------------
+    sqlalchemy_database_url: str = Field(..., alias="SQLALCHEMY_DATABASE_URL")
 
-    secret_key: str
-    algorithm: str
-    access_token_expire_minutes: int = 1440
-    expire_minutes: int = 60  
+    # -------------------- AUTH --------------------
+    secret_key: str = Field(..., alias="SECRET_KEY")
+    algorithm: str = Field(..., alias="ALGORITHM")
+    access_token_expire_minutes: int = Field(..., alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    expire_minutes: int = Field(..., alias="EXPIRE_MINUTES")
 
-    mail_username: str
-    mail_password: str
-    mail_from: str
-    mail_port: int
-    mail_server: str
+    # -------------------- MAIL --------------------
+    mail_username: str = Field(..., alias="MAIL_USERNAME")
+    mail_password: str = Field(..., alias="MAIL_PASSWORD")
+    mail_from: str = Field(..., alias="MAIL_FROM")
+    mail_port: int = Field(..., alias="MAIL_PORT")
+    mail_server: str = Field(..., alias="MAIL_SERVER")
 
-    redis_url: str
+    # -------------------- REDIS --------------------
+    redis_url: str = Field(..., alias="REDIS_URL")
 
-    cloudinary_name: str
-    cloudinary_api_key: str
-    cloudinary_api_secret: str
+    # -------------------- CLOUDINARY --------------------
+    cloudinary_name: str = Field(..., alias="CLOUDINARY_NAME")
+    cloudinary_api_key: str = Field(..., alias="CLOUDINARY_API_KEY")
+    cloudinary_api_secret: str = Field(..., alias="CLOUDINARY_API_SECRET")
 
+    # -------------------- CONFIG --------------------
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="allow"
+        extra="allow"  # дозволяє додаткові змінні середовища
     )
 
+
 settings = Settings()
+
 
 def init_cloudinary():
     cloudinary.config(
         cloud_name=settings.cloudinary_name,
         api_key=settings.cloudinary_api_key,
         api_secret=settings.cloudinary_api_secret,
-        secure=True
+        secure=True,
     )
