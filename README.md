@@ -1226,6 +1226,7 @@ PostgreSQL
 Alembic-вставки при старті
 
 ### Postgres
+
 Крок 1 — Створити Postgres у Fly.io
 
 Виконай:
@@ -1241,9 +1242,8 @@ fly postgres connection-string -a ## photoshare-1-db ##
 
 там буде ім’я кластера, приблизно:
 
-
-NAME                        ...
-photoshare-project-1-db     ...
+NAME ...
+photoshare-project-1-db ...
 
 Тепер:
 
@@ -1272,7 +1272,6 @@ fly mpg connect q49ypo4wlylr17ln
 
 fly mpg connect q49ypo4wlylr17ln -d fly-db -u fly-user
 
-
 Це відкриє psql консоль, і ти зможеш виконувати SQL-запити.
 
 Наприклад, для PhotoShare можна одразу створити таблицю для збереження фото:
@@ -1282,21 +1281,23 @@ fly mpg connect q49ypo4wlylr17ln -d fly-db -u fly-user
 
 -- Створення таблиці для фото
 CREATE TABLE photos (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    url TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+id SERIAL PRIMARY KEY,
+title VARCHAR(255) NOT NULL,
+url TEXT NOT NULL,
+created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Перевірка таблиць у базі
 \dt
 
+### 1️⃣6️⃣ Деплой
 
-1️⃣6️⃣ Деплой
 Рекомендовані платформи:
 
-Fly.io
-Кожен у команді копіює: cp .env.example .env
+### Fly.io
+
+Кожен у команді копіює:
+cp .env.example .env
 
 1️⃣ Web-додаток (FastAPI + Uvicorn)
 
@@ -1342,9 +1343,12 @@ Web-додаток підключається до Redis через URL.
 
 Redis і Cloudinary залишаються зовнішніми сервісами, просто твоє додаток з ними працює через мережу.
 
-Перевірити список секретів fly secrets list
 
-Запускаємо deploy: fly deploy
+Перевірити список секретів
+fly secrets list
+
+Запускаємо deploy:
+fly deploy
 
 Якщо хочеш вручну перевірити API
 
@@ -1358,7 +1362,10 @@ https://your-app-name.fly.dev/docs
 
 Перевір:
 
-▶ лог помилки: fly logs ▶ статус машини: fly status
+▶ лог помилки:
+fly logs
+▶ статус машини:
+fly status
 
 4️⃣ Перевірка після merge
 
@@ -1372,11 +1379,14 @@ uvicorn app.main:app --reload
 
 Друга людина має спочатку оновити свій локальний main:
 
-git checkout main git fetch origin git reset --hard origin/main
+git checkout main
+git fetch origin
+git reset --hard origin/main
 
 Це гарантує, що її локальний main повністю відповідає віддаленому, включно з Fly.io налаштуваннями.
 
-2️⃣ Створити нову гілку git checkout -b new-feature-branch
+2️⃣ Створити нову гілку
+git checkout -b new-feature-branch
 
 Тепер вона починає працювати на базі всіх змін, які ти злито в main.
 
@@ -1390,9 +1400,9 @@ fly secrets set SECRET_KEY="..." SQLALCHEMY_DATABASE_URL="..."
 
 Після цього локально все буде запускатися як у тебе.
 
-4️⃣ Локальний запуск:
-
-uvicorn app.main:app --reload 
+4️⃣ Локальний запуск
+uvicorn app.main:app --reload
+ 
 alembic upgrade head
 
 Переконайтеся, що база даних доступна і міграції застосовані.
@@ -1435,3 +1445,6 @@ REDIS_URL=redis://default:a9074adb8fb547d996908034247e4ff0@fly-cold-dew-5968.ups
 CLOUDINARY_NAME=твоє_ім'я_Cloudinary
 CLOUDINARY_API_KEY=твій_API_key
 CLOUDINARY_API_SECRET=твій_API_secret
+
+
+### Контакти
