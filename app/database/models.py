@@ -38,7 +38,7 @@ class User(Base):
     email = Column(String(250), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
     avatar = Column(String(355), nullable=True)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
     role = Column(Enum(UserRoleEnum), default=UserRoleEnum.user)
     refresh_token = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
@@ -73,7 +73,7 @@ class Post(Base):
     transform_url = Column(Text)
     title = Column(String(50), nullable=True)
     descr = Column(String(500), nullable=True)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     done = Column(Boolean, default=False)
     public_id = Column(String(50))
@@ -98,7 +98,7 @@ class Hashtag(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String(25), nullable=False, unique=True)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
 
     user = relationship('User', back_populates='hashtags')
@@ -115,7 +115,7 @@ class Comment(Base):
 
     id = Column(Integer, primary_key=True)
     text = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, default=None)
     update_status = Column(Boolean, default=False)
 
@@ -133,7 +133,7 @@ class Rating(Base):
 
     id = Column(Integer, primary_key=True)
     rate = Column(Integer, default=0)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
 
     post_id = Column(Integer, ForeignKey('posts.id', ondelete='CASCADE'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True)

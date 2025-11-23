@@ -1,109 +1,112 @@
-import os
-import sys
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
+from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from app.database.models import Base, User
-from app.database.connect_db import get_db
+from app.database.connect_db import Base, get_db
+from app.database.models import User, Post
 from app.main import app
+import uuid
 
-# --- Додаємо корінь проекту до sys.path ---
-sys.path.append(os.getcwd())
-
-# --- Синхронна тестова база для TestClient ---
-TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL",
-    "sqlite:///./test.db"
-)
-engine = create_engine(
-    TEST_DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {}
-)
+# -----------------------------
+# Тестова база даних (in-memory SQLite)
+# -----------------------------
+TEST_DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# --- Асинхронна тестова база для репозиторіїв ---
-ASYNC_TEST_DATABASE_URL = TEST_DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://")
-async_engine = create_async_engine(
-    ASYNC_TEST_DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in ASYNC_TEST_DATABASE_URL else {}
-)
-async_session = sessionmaker(async_engine, expire_on_commit=False, class_=AsyncSession)
+@pytest.fixture(scope="session", autouse=True)
+def setup_db():
+    """Створює таблиці перед усією сесією тестів і видаляє після"""
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
-# ------------------ Фікстури ------------------
-
-# Асинхронна сесія для репозиторіїв
-@pytest.fixture()
-async def session() -> AsyncSession:
-    async with async_session() as session:
-        yield session
-
-# Синхронна сесія для TestClient
 @pytest.fixture(scope="function")
 def db_session():
+    # створюємо таблиці перед кожним тестом
     Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
+    db = TestingSessionLocal()
     try:
-        yield session
+        yield db
     finally:
-        session.rollback()
-        session.close()
+        db.rollback()
+        db.close()
         Base.metadata.drop_all(bind=engine)
 
-# Redis mock для всіх тестів
+# -----------------------------
+# Моки зовнішніх сервісів
+# -----------------------------
 @pytest.fixture(autouse=True)
 def mock_redis(monkeypatch):
-    from app.main import redis
-    mock_redis_instance = AsyncMock()
-    mock_redis_instance.ping.return_value = True
-    monkeypatch.setattr("app.main.redis.from_url", lambda *args, **kwargs: mock_redis_instance)
-    yield
+    """Мок Redis для всіх тестів"""
+    mock = AsyncMock()
+    mock.get.return_value = None
+    mock.set.return_value = True
+    mock.delete.return_value = True
+    mock.ping.return_value = True
+    monkeypatch.setattr("app.main.redis.from_url", lambda *a, **k: mock)
+    return mock
 
-# FastAPI TestClient із заміною get_db
+@pytest.fixture()
+def mock_cloudinary(monkeypatch):
+    """Мок Cloudinary uploader"""
+    mock = MagicMock()
+    mock.upload.return_value = {"url": "https://fakeurl.com/fake.png", "public_id": "test_id"}
+    mock.destroy.return_value = {"result": "ok"}
+    monkeypatch.setattr("app.utils.cloudinary.uploader", mock)
+    return mock
+
+# -----------------------------
+# FastAPI TestClient
+# -----------------------------
 @pytest.fixture(scope="function")
 def client(db_session):
+    # підміняємо залежність get_db на тестову сесію
     def override_get_db():
         try:
             yield db_session
         finally:
-            db_session.close()
+            pass
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
-# User для авторизації в синхронних тестах
-@pytest.fixture(scope="function")
+# -----------------------------
+# Тестові дані
+# -----------------------------
+@pytest.fixture()
 def create_user(db_session):
     user = User(
-        username="artur4ik",
-        email="artur4ik@example.com",
-        password="123456789",
-        role="Administrator",
-        avatar="url-avatar"
+        username="test_user",
+        email=f"user_{uuid.uuid4().hex}@example.com",
+        password="123456",
+        avatar="url-avatar",
+        is_verify=True,
+        is_active=True,
+        created_at=datetime.utcnow()
     )
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
     return user
 
-# User для асинхронних тестів репозиторія
 @pytest.fixture()
-async def user(session):
-    test_user = User(
-        username="second_user",
-        email="second_user@example.com",
-        password="password123",
-        avatar="url-avatar"
-    )
-    session.add(test_user)
-    await session.commit()
-    await session.refresh(test_user)
-    return test_user
-
-# Мок для функцій email
-@pytest.fixture
-def mock_send_email(monkeypatch):
-    mock = MagicMock()
-    monkeypatch.setattr("app.routes.auth.confirmed_email", mock)
-    return mock
+def create_posts(db_session, create_user):
+    """Створює 3 пости для користувача"""
+    posts = []
+    for i in range(3):
+        post = Post(
+            title=f"Post {i}",
+            descr=f"Body {i}",
+            created_at=datetime.utcnow(),
+            user_id=create_user.id,
+            public_id=f"public_id_{i}"
+        )
+        db_session.add(post)
+        db_session.commit()
+        db_session.refresh(post)
+        posts.append(post)
+    return posts
