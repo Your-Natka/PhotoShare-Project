@@ -20,7 +20,7 @@ def test_create_user(client, user, monkeypatch):
     :return: A response object
     """
     mock_send_email = MagicMock()
-    monkeypatch.setattr("src.routes.auth.confirmed_email", mock_send_email)
+    monkeypatch.setattr("app.routes.auth.confirmed_email", mock_send_email)
     response = client.post(
         "/api/auth/signup",
         json=user,

@@ -113,37 +113,37 @@ FastAPI | PostgreSQL | SQLAlchemy | JWT | Cloudinary | Docker | Docker Compose
 
 ### 📑 Зміст
 
-Опис проєкту
+Опис проєкту                       148
 
-Основні можливості
+Основні можливості                 153
 
-Технології
+Технології                         223
 
-Docker та Docker Compose
+Docker та Docker Compose           255, 1213
 
-Встановлення та запуск
+Встановлення та запуск             241
 
-Структура проєкту
+Структура проєкту                  265
 
-Аутентифікація
+Аутентифікація                     284
 
-Робота зі світлинами
+Робота зі світлинами               401
 
-Transformations
+Transformations                    522
 
-Коментарі
+Коментарі                          752
 
-Ролі користувачів
+Ролі користувачів                  392, 922
 
-Рейтинг
+Рейтинг                            940, 958
 
-Hashtags
+Hashtags                           1092                                  
 
-Тести
+Тести                              1194
 
-Деплой
+Деплой                             1293
 
-Контакти
+Контакти                           1448
 
 ### 1️⃣ Опис проєкту
 
@@ -1419,8 +1419,6 @@ fly secrets set CLOUDINARY_NAME="your_cloudinary_name" fly secrets set CLOUDINAR
 fly secrets set MAIL_USERNAME="your_email_username" fly secrets set MAIL_PASSWORD="your_email_password" fly secrets set MAIL_FROM="your_email_from_address" fly secrets set MAIL_PORT=587
 fly secrets set MAIL_SERVER="smtp.example.com"
 fly secrets set REDIS_URL="redis://user:pass@host:port"
-
-### Контакти
 
 # DATABASE
 SQLALCHEMY_DATABASE_URL=postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require

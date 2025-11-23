@@ -19,7 +19,7 @@ def token(client, user, session, monkeypatch):
     :return: A token, which is then used in the test function
     """
     mock_send_email = MagicMock()
-    monkeypatch.setattr("src.routes.auth.send_email", mock_send_email)
+    monkeypatch.setattr("app.routes.auth.send_email", mock_send_email)
     client.post("/api/auth/signup", json=user)
     current_user: User = session.query(User).filter(User.email == user.get('email')).first()
     current_user.is_verify = True
