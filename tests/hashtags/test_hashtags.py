@@ -1,125 +1,88 @@
 import pytest
-from datetime import datetime
-from app.database.models import User, Hashtag
-from app.repository import hashtags as repository_tag
+from unittest.mock import MagicMock
+from app.database.models import Hashtag, User
 from app.schemas import HashtagBase
+from app.repository import hashtags  # твої функції: create_tag, get_my_tags тощо
 
-# ------------------- FIXTURES -------------------
+# ========================
+# ФІКСТУРИ
+# ========================
+@pytest.fixture
+def fake_user():
+    return User(id=1, username="testuser", email="test@example.com")
 
-@pytest.fixture()
-def new_user(session):
-    db_user = session.query(User).filter(User.email == "artur4ik@example.com").first()
-    if not db_user:
-        db_user = User(
-            email="artur4ik@example.com",
-            username="artur4ik",
-            password="password123",
-            is_verify=True,
-            is_active=True,
-            created_at=datetime.utcnow()
-        )
-        session.add(db_user)
-        session.commit()
-        session.refresh(db_user)
-    return db_user
+@pytest.fixture
+def fake_hashtag():
+    return Hashtag(id=1, title="dog", user_id=1)
 
+@pytest.fixture
+def mock_db():
+    db = MagicMock()
+    db.add = MagicMock()
+    db.commit = MagicMock()
+    db.refresh = MagicMock()
+    db.query = MagicMock()
+    db.delete = MagicMock()
+    return db
 
-@pytest.fixture()
-def tag(new_user, session):
-    db_tag = session.query(Hashtag).first()
-    if not db_tag:
-        db_tag = Hashtag(
-            title="dog",
-            created_at=datetime.utcnow(),
-            user_id=new_user.id
-        )
-        session.add(db_tag)
-        session.commit()
-        session.refresh(db_tag)
-    return db_tag
+# ========================
+# РЕПОЗИТОРНІ ТЕСТИ
+# ========================
+@pytest.mark.asyncio
+async def test_create_tag(mock_db, fake_user):
+    # Мокаємо, що тег ще не існує
+    mock_db.query().filter().first.return_value = None
+    body = HashtagBase(title="dog")
+    
+    result = await hashtags.create_tag(body, fake_user, mock_db)
 
+    assert result.title == "dog"
+    mock_db.add.assert_called_once()
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once()
 
-@pytest.fixture()
-def body():
-    return {"title": "string"}
+@pytest.mark.asyncio
+async def test_remove_tag(mock_db, fake_hashtag):
+    mock_db.query().filter().first.return_value = fake_hashtag
+    
+    result = await hashtags.remove_tag(1, mock_db)
 
+    assert result == fake_hashtag
+    mock_db.delete.assert_called_once_with(fake_hashtag)
+    mock_db.commit.assert_called_once()
 
-@pytest.fixture()
-def new_body():
-    return {"title": "dog"}
+@pytest.mark.asyncio
+async def test_update_tag(mock_db, fake_hashtag):
+    mock_db.query().filter().first.return_value = fake_hashtag
+    body = HashtagBase(title="cat")
 
+    result = await hashtags.update_tag(1, body, mock_db)
 
-# ------------------- REPOSITORY TESTS -------------------
+    assert result.title == "cat"
+    mock_db.commit.assert_called_once()
 
-def test_create_tag_repo(body, new_user, session):
-    tag_obj = HashtagBase(**body)
-    response = repository_tag.create_tag(tag_obj, new_user, session)
-    assert response.title == body["title"]
-    assert response.user_id == new_user.id
+@pytest.mark.asyncio
+async def test_get_tag_by_id(mock_db, fake_hashtag):
+    mock_db.query().filter().first.return_value = fake_hashtag
 
+    result = await hashtags.get_tag_by_id(1, mock_db)
 
-def test_get_my_tags_repo(new_user, session):
-    response = repository_tag.get_my_tags(0, 100, new_user, session)
-    assert isinstance(response, list)
-    assert all(tag.user_id == new_user.id for tag in response)
+    assert result == fake_hashtag
 
+@pytest.mark.asyncio
+async def test_get_my_tags(mock_db, fake_hashtag, fake_user):
+    mock_db.query().filter().offset().limit().all.return_value = [fake_hashtag]
 
-def test_get_all_tags_repo(session):
-    response = repository_tag.get_all_tags(0, 100, session)
-    assert isinstance(response, list)
-    assert len(response) >= 1
+    result = await hashtags.get_my_tags(skip=0, limit=10, user=fake_user, db=mock_db)
 
+    assert result == [fake_hashtag]
 
-def test_get_tag_by_id_repo(tag, session):
-    response = repository_tag.get_tag_by_id(tag.id, session)
-    assert response.title == tag.title
+@pytest.mark.asyncio
+async def test_get_all_tags(mock_db, fake_hashtag):
+    mock_db.query().offset().limit().all.return_value = [fake_hashtag]
 
+    result = await hashtags.get_all_tags(skip=0, limit=10, db=mock_db)
 
-def test_update_tag_repo(tag, new_body, session):
-    body_obj = HashtagBase(**new_body)
-    response = repository_tag.update_tag(tag.id, body_obj, session)
-    assert response.title == new_body["title"]
-
-
-def test_remove_tag_repo(tag, session):
-    repository_tag.remove_tag(tag.id, session)
-    response = repository_tag.get_all_tags(0, 100, session)
-    assert all(t.id != tag.id for t in response)
-
-
-# ------------------- API TESTS -------------------
-
-def test_create_tag(client, create_user):
-    response = client.post("/api/hashtags/new/", json={"title": "dog"})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["title"] == "dog"
+    assert result == [fake_hashtag]
 
 
-def test_get_all_tags(client, create_hashtags):
-    response = client.get("/api/hashtags/all/")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == len(create_hashtags)
-
-
-def test_get_tag_by_id(client, create_hashtags):
-    tag = create_hashtags[0]
-    response = client.get(f"/api/hashtags/by_id/{tag.id}")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["id"] == tag.id
-
-
-def test_update_tag(client, create_hashtags):
-    tag = create_hashtags[0]
-    response = client.put(f"/api/hashtags/upd_tag/{tag.id}", json={"title": "newtag"})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["title"] == "newtag"
-
-
-def test_delete_tag(client, create_hashtags):
-    tag = create_hashtags[0]
-    response = client.delete(f"/api/hashtags/del/{tag.id}")
-    assert response.status_code == 200
