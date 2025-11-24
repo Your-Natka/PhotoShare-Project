@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredent
 from sqlalchemy.orm import Session
 
 from app.database.models import User
-from app.services.email import send_email
+from app.services.mail import send_email
 from app.database.connect_db import get_db
 from app.schemas import UserModel, UserResponse, TokenModel, RequestEmail
 from app.repository import users as repository_users

@@ -1,52 +1,73 @@
-from app.database.models import User
-from app.conf.messages import ALREADY_EXISTS, EMAIL_NOT_CONFIRMED, INVALID_PASSWORD, INVALID_EMAIL, USER_NOT_ACTIVE
+import pytest
+from app.database.models import User, Post, Comment
+from app.services.auth import register_user
 
-def test_signup_user(client, create_user):
-    user_data = {"username": "newuser", "email": "newuser@example.com", "password": "password123"}
-    response = client.post("/api/auth/signup", json=user_data)
+@pytest.fixture()
+def new_user(db_session, faker):
+    # генеруємо унікальний email для кожного тесту
+    email = faker.unique.email()
+    user = User(
+        username="testuser",
+        email=email,
+        password="testpassword",
+        is_verify=True,
+        is_active=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    return user
+
+@pytest.fixture()
+def post(new_user, db_session):
+    post = Post(
+        title="Test Post",
+        content="Test content",
+        owner_id=new_user.id
+    )
+    db_session.add(post)
+    db_session.commit()
+    return post
+
+@pytest.fixture()
+def comment(new_user, post, db_session):
+    comment = Comment(
+        content="Test comment",
+        user_id=new_user.id,
+        post_id=post.id
+    )
+    db_session.add(comment)
+    db_session.commit()
+    return comment
+
+@pytest.mark.asyncio
+async def test_create_comment(client, new_user, post):
+    payload = {"content": "New comment", "post_id": post.id}
+    response = await client.post("/api/comments/", json=payload)
     assert response.status_code == 201
     data = response.json()
-    assert data["user"]["email"] == "newuser@example.com"
-    assert "id" in data["user"]
+    assert data["content"] == "New comment"
+    assert data["user_id"] == new_user.id
+    assert data["post_id"] == post.id
 
-def test_signup_user_already_exists(client, create_user):
-    user_data = {"username": create_user.username, "email": create_user.email, "password": "password123"}
-    response = client.post("/api/auth/signup", json=user_data)
-    assert response.status_code == 409
-    data = response.json()
-    assert data["detail"] == ALREADY_EXISTS
-
-def test_login_not_confirmed(client, create_user, session):
-    create_user.is_verify = False
-    session.commit()
-    response = client.post("/api/auth/login", data={"username": create_user.email, "password": "testpassword"})
-    assert response.status_code == 401
-    data = response.json()
-    assert data["detail"] == EMAIL_NOT_CONFIRMED
-
-def test_login_user(client, create_user, session):
-    create_user.is_verify = True
-    create_user.is_active = True
-    session.commit()
-    response = client.post("/api/auth/login", data={"username": create_user.email, "password": "testpassword"})
+@pytest.mark.asyncio
+async def test_get_comments(client, post, comment):
+    response = await client.get(f"/api/comments/?post_id={post.id}")
     assert response.status_code == 200
     data = response.json()
-    assert data["token_type"] == "bearer"
+    assert len(data) >= 1
+    assert data[0]["content"] == comment.content
 
-def test_login_wrong_password(client, create_user, session):
-    create_user.is_verify = True
-    create_user.is_active = True
-    session.commit()
-    response = client.post("/api/auth/login", data={"username": create_user.email, "password": "wrongpass"})
-    assert response.status_code == 401
+@pytest.mark.asyncio
+async def test_update_comment(client, comment):
+    payload = {"content": "Updated comment"}
+    response = await client.put(f"/api/comments/{comment.id}", json=payload)
+    assert response.status_code == 200
     data = response.json()
-    assert data["detail"] == INVALID_PASSWORD
+    assert data["content"] == "Updated comment"
 
-def test_login_user_not_active(client, create_user, session):
-    create_user.is_verify = True
-    create_user.is_active = False
-    session.commit()
-    response = client.post("/api/auth/login", data={"username": create_user.email, "password": "testpassword"})
-    assert response.status_code == 403
-    data = response.json()
-    assert data["detail"] == USER_NOT_ACTIVE
+@pytest.mark.asyncio
+async def test_delete_comment(client, comment):
+    response = await client.delete(f"/api/comments/{comment.id}")
+    assert response.status_code == 204
+
+

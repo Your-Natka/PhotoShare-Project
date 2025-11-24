@@ -4,7 +4,7 @@ posts.py — функції для роботи з постами у PhotoShare 
 Містить CRUD-операції над постами, пошук за ключовими словами та хештегами, а також роботу з Cloudinary.
 """
 
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from fastapi import Request, UploadFile
 from faker import Faker
@@ -21,7 +21,7 @@ from app.schemas import PostUpdate
 init_cloudinary()
 
 
-async def create_post(
+def create_post(
     request: Request,
     title: str,
     descr: str,
@@ -31,16 +31,7 @@ async def create_post(
     current_user: User
 ) -> Post:
     """
-    Створює новий пост з завантаженим зображенням у Cloudinary та додає хештеги.
-
-    :param request: FastAPI Request об'єкт
-    :param title: Заголовок поста
-    :param descr: Опис поста
-    :param hashtags: Список хештегів
-    :param file: Файл зображення
-    :param db: SQLAlchemy сесія
-    :param current_user: Поточний користувач
-    :return: Створений об'єкт Post
+    Створює новий пост із зображенням у Cloudinary та тегами.
     """
     public_id = Faker().first_name()
     upload_result = cloudinary.uploader.upload(file.file, public_id=public_id, overwrite=True)
@@ -66,111 +57,42 @@ async def create_post(
     return post
 
 
-async def get_all_posts(skip: int, limit: int, db: Session) -> List[Post]:
-    """
-    Повертає всі пости з пагінацією.
-
-    :param skip: Кількість пропущених постів
-    :param limit: Ліміт постів для повернення
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_all_posts(skip: int, limit: int, db: Session) -> List[Post]:
     return db.query(Post).offset(skip).limit(limit).all()
 
 
-async def get_my_posts(skip: int, limit: int, user: User, db: Session) -> List[Post]:
-    """
-    Повертає всі пости поточного користувача.
-
-    :param skip: Кількість пропущених постів
-    :param limit: Ліміт постів для повернення
-    :param user: Поточний користувач
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_my_posts(skip: int, limit: int, user: User, db: Session) -> List[Post]:
     return db.query(Post).filter(Post.user_id == user.id).offset(skip).limit(limit).all()
 
 
-async def get_post_by_id(post_id: int, user: User, db: Session) -> Post | None:
-    """
-    Повертає конкретний пост поточного користувача за ID.
-
-    :param post_id: ID поста
-    :param user: Поточний користувач
-    :param db: SQLAlchemy сесія
-    :return: Об'єкт Post або None, якщо пост не знайдено
-    """
+def get_post_by_id(post_id: int, user: User, db: Session) -> Optional[Post]:
     return db.query(Post).filter(and_(Post.user_id == user.id, Post.id == post_id)).first()
 
 
-async def get_posts_by_title(post_title: str, user: User, db: Session) -> List[Post]:
-    """
-    Повертає пости, які містять заданий заголовок.
-
-    :param post_title: Заголовок для пошуку
-    :param user: Поточний користувач
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_posts_by_title(post_title: str, user: User, db: Session) -> List[Post]:
     return db.query(Post).filter(func.lower(Post.title).like(f'%{post_title.lower()}%')).all()
 
 
-async def get_posts_by_user_id(user_id: int, db: Session) -> List[Post]:
-    """
-    Повертає всі пости певного користувача за його ID.
-
-    :param user_id: ID користувача
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_posts_by_user_id(user_id: int, db: Session) -> List[Post]:
     return db.query(Post).filter(Post.user_id == user_id).all()
 
 
-async def get_posts_by_username(user_name: str, db: Session) -> List[Post]: 
-    """
-    Повертає всі пости користувача за його username.
-
-    :param user_name: Username користувача
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_posts_by_username(user_name: str, db: Session) -> List[Post]:
     searched_user = db.query(User).filter(func.lower(User.username).like(f'%{user_name.lower()}%')).first()
     if searched_user:
         return db.query(Post).filter(Post.user_id == searched_user.id).all()
     return []
 
 
-async def get_posts_with_hashtag(hashtag_name: str, db: Session) -> List[Post]: 
-    """
-    Повертає пости, які містять конкретний хештег.
-
-    :param hashtag_name: Назва хештегу
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_posts_with_hashtag(hashtag_name: str, db: Session) -> List[Post]:
     return db.query(Post).join(Post.hashtags).filter(Hashtag.title == hashtag_name).all()
 
 
-async def get_post_comments(post_id: int, db: Session) -> List[Comment]: 
-    """
-    Повертає коментарі для конкретного поста.
-
-    :param post_id: ID поста
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Comment
-    """
+def get_post_comments(post_id: int, db: Session) -> List[Comment]:
     return db.query(Comment).filter(Comment.post_id == post_id).all()
 
 
-def get_hashtags(hashtag_titles: list, user: User, db: Session):
-    """
-    Створює або отримує існуючі хештеги за списком назв.
-
-    :param hashtag_titles: Список назв хештегів
-    :param user: Поточний користувач
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Hashtag
-    """
+def get_hashtags(hashtag_titles: List[str], user: User, db: Session) -> List[Hashtag]:
     tags = []
     for tag_title in hashtag_titles:
         tag = db.query(Hashtag).filter(Hashtag.title == tag_title).first()
@@ -183,56 +105,41 @@ def get_hashtags(hashtag_titles: list, user: User, db: Session):
     return tags
 
 
-async def get_post_by_keyword(keyword: str, db: Session) -> List[Post]:
-    """
-    Повертає пости, які містять ключове слово в заголовку або описі.
-
-    :param keyword: Ключове слово для пошуку
-    :param db: SQLAlchemy сесія
-    :return: Список об'єктів Post
-    """
+def get_post_by_keyword(keyword: str, db: Session) -> List[Post]:
     return db.query(Post).filter(or_(
         func.lower(Post.title).like(f'%{keyword.lower()}%'),
         func.lower(Post.descr).like(f'%{keyword.lower()}%')
     )).all()
 
 
-async def update_post(post_id: int, body: PostUpdate, user: User, db: Session) -> Post | None:
-    """
-    Оновлює пост користувача або адміністраторський пост.
-
-    :param post_id: ID поста
-    :param body: Дані для оновлення (PostUpdate)
-    :param user: Поточний користувач
-    :param db: SQLAlchemy сесія
-    :return: Оновлений об'єкт Post або None
-    """
+def update_post(post_id: int, body: PostUpdate, user: User, db: Session) -> Optional[Post]:
     post = db.query(Post).filter(Post.id == post_id).first()
+
     if post and (user.role == UserRoleEnum.admin or post.user_id == user.id):
+
         hashtags = []
         if body.hashtags:
             hashtags = get_hashtags(body.hashtags, user, db)
+
         post.title = body.title
         post.descr = body.descr
         post.hashtags = hashtags
         post.updated_at = datetime.now()
         post.done = True
+
         db.commit()
+        db.refresh(post)
+
     return post
 
 
-async def remove_post(post_id: int, user: User, db: Session) -> Post | None:
-    """
-    Видаляє пост користувача або адміністраторський пост та його файл з Cloudinary.
-
-    :param post_id: ID поста
-    :param user: Поточний користувач
-    :param db: SQLAlchemy сесія
-    :return: Видалений об'єкт Post або None
-    """
+def remove_post(post_id: int, user: User, db: Session) -> Optional[Post]:
     post = db.query(Post).filter(Post.id == post_id).first()
+
     if post and (user.role == UserRoleEnum.admin or post.user_id == user.id):
         cloudinary.uploader.destroy(post.public_id)
         db.delete(post)
         db.commit()
-    return post
+        return post
+
+    return None

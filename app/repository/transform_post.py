@@ -18,23 +18,7 @@ from app.tramsform_schemas import TransformBodyModel
 from app.conf.messages import NOT_FOUND
 
 
-async def transform_metod(post_id: int, body: TransformBodyModel, user: User, db: Session) -> Post | None:
-    """
-    Застосовує трансформації до зображення поста через Cloudinary.
-
-    Підтримує:
-    - круглі кадри (circle),
-    - ефекти (effect),
-    - зміни розмірів (resize),
-    - текстові накладки (text),
-    - обертання та дзеркальне відображення (rotate).
-
-    :param post_id: ID поста для трансформації
-    :param body: TransformBodyModel — параметри трансформацій
-    :param user: Поточний користувач, власник поста
-    :param db: SQLAlchemy сесія
-    :return: Оновлений об'єкт Post з полем transform_url або None, якщо пост не знайдено
-    """
+def transform_metod(post_id: int, body: TransformBodyModel, user: User, db: Session) -> Post | None:
     post = db.query(Post).filter(Post.user_id == user.id, Post.id == post_id).first()
     if post:
         transformation = []
@@ -90,30 +74,19 @@ async def transform_metod(post_id: int, body: TransformBodyModel, user: User, db
             db.commit()
 
         return post
+    return None
 
 
-async def show_qr(post_id: int, user: User, db: Session, request: Request) -> dict | None:
-    """
-    Генерує QR-код для трансформованого зображення поста.
-
-    :param post_id: ID поста
-    :param user: Поточний користувач, власник поста
-    :param db: SQLAlchemy сесія
-    :param request: Об'єкт FastAPI Request для формування базового URL
-    :return: Словник з ключем 'qr_url' (URL до PNG QR-коду) або None, якщо пост не знайдено або transform_url відсутній
-    """
+def show_qr(post_id: int, user: User, db: Session, request: Request) -> dict | None:
     post = db.query(Post).filter(Post.user_id == user.id, Post.id == post_id).first()
     if post and post.transform_url:
-        # Створюємо директорію для QR-кодів
         qr_dir = "media/qrcodes"
         os.makedirs(qr_dir, exist_ok=True)
 
-        # Генеруємо QR-код
         img = pyqrcode.create(post.transform_url)
         qr_path = f"{qr_dir}/{post.id}.png"
         img.png(qr_path, scale=6)
 
-        # Формуємо повний URL
         base_url = str(request.base_url).rstrip("/")
         qr_url = f"{base_url}/{qr_path}"
         return {"qr_url": qr_url}
