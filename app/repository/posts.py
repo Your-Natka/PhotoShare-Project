@@ -211,16 +211,33 @@ async def update_post(post_id: int, body: PostUpdate, user: User, db: Session) -
     """
     post = db.query(Post).filter(Post.id == post_id).first()
     if post and (user.role == UserRoleEnum.admin or post.user_id == user.id):
-        hashtags = []
-        if body.hashtags:
-            hashtags = get_hashtags(body.hashtags, user, db)
-        post.title = body.title
-        post.descr = body.descr
-        post.hashtags = hashtags
+        # оновлюємо хештеги лише якщо вони присутні
+        if body.hashtags is not None:
+            post.hashtags = get_hashtags(body.hashtags, user, db)
+
+        # оновлюємо інші поля, якщо вони присутні
+        if body.title is not None:
+            post.title = body.title
+        if body.descr is not None:
+            post.descr = body.descr
+
         post.updated_at = datetime.now()
         post.done = True
         db.commit()
+        db.refresh(post)
     return post
+    # post = db.query(Post).filter(Post.id == post_id).first()
+    # if post and (user.role == UserRoleEnum.admin or post.user_id == user.id):
+    #     hashtags = []
+    #     if body.hashtags:
+    #         hashtags = get_hashtags(body.hashtags, user, db)
+    #     post.title = body.title
+    #     post.descr = body.descr
+    #     post.hashtags = hashtags
+    #     post.updated_at = datetime.now()
+    #     post.done = True
+    #     db.commit()
+    # return post
 
 
 async def remove_post(post_id: int, user: User, db: Session) -> Post | None:

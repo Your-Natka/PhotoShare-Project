@@ -32,9 +32,11 @@ class UserDb(BaseModel):
     email: str
     avatar: Optional[str]
     role: UserRoleEnum
-    created_at: datetime
+    created_at: Optional[datetime]
 
-    model_config = {"from_attributes": True}
+    # model_config = {"from_attributes": True}
+    class Config:
+        orm_mode = True
 
 
 class UserResponse(BaseModel):
@@ -171,6 +173,7 @@ class PostUpdate(PostBase):
     """
     title: str = Field(max_length=45)
     descr: str = Field(max_length=450)
+    hashtags: Optional[List[str]] = None
 
 
 class PostResponse(PostBase):

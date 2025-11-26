@@ -150,6 +150,7 @@ transformed_url — URL трансформованого зображення
 }
 
 🎯 Приклад -> ПОВЕРНУТИ ФОТО НА 45°
+
 {
 "circle": {
 "use_filter": true,
@@ -171,13 +172,10 @@ transformed_url — URL трансформованого зображення
 "width": 400
 },
 "text": {
-"use_filter": true,
-"font_size": 50,
-"text": false
+"use_filter": false
 },
 "rotate": {
 "use_filter": true,
-"width": 400,
 "degree": 45
 }
 }

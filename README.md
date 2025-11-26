@@ -1,5 +1,6 @@
 # Project "PhotoShare" 📷
-# Запусти в хмарному середовищі 
+
+# Запусти в хмарному середовищі
 
 ✅ КРОК 1. Перевіряємо, що в тебе встановлено Fly CLI
 
@@ -24,8 +25,8 @@ flyctl apps list
 Там має бути щось типу:
 
 MacBook-Pro-Natala:PhotoShare-Project natalabodnarcuk$ flyctl apps list
-NAME                    OWNER           STATUS          LATEST DEPLOY 
-photoshare-project-1    personal        deployed        Nov 24 2025 18:51
+NAME OWNER STATUS LATEST DEPLOY
+photoshare-project-1 personal deployed Nov 24 2025 18:51
 
 ✅ КРОК 4. Перевіряємо та оновлюємо секрети Fly.io
 
@@ -48,13 +49,13 @@ redis://default:пароль@host:6379
 flyctl secrets list --decode
 
 Подивитися секрети у Fly.io через SSH
+
 1. Увійди в машину:
-flyctl ssh console --app photoshare-project-1
+   flyctl ssh console --app photoshare-project-1
 
 2. У контейнері введи:
-printenv | grep SQL
-printenv | grep REDIS
-
+   printenv | grep SQL
+   printenv | grep REDIS
 
 Ти побачиш реальні значення:
 
@@ -70,7 +71,7 @@ exit
 ✅ КРОК 7. Піднімаємо машину на Fly.io
 flyctl deploy
 
-✅ КРОК 8. Виконуємо міграції 
+✅ КРОК 8. Виконуємо міграції
 Запускається автоматично
 
 ✅ КРОК 9. Перевіряємо логи бекенда
@@ -86,7 +87,6 @@ flyctl machines list --app photoshare-project-1
 
 SQLALCHEMY_DATABASE_URL=postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 
-
 Команда:
 
 psql "postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -98,13 +98,14 @@ neondb=>
 2️⃣ Перегляд усіх таблиць
 \dt
 
-
 Якщо хочеш побачити в конкретній схемі (часто public):
 
-\dt public.*
+\dt public.\*
 
 3️⃣ Перегляд даних у таблиці users
-SELECT * FROM users;
+SELECT \* FROM users;
+
+SELECT id, username, email, role, created_at FROM users;
 
 4️⃣ Перегляд структури таблиці
 \d users
@@ -1469,7 +1470,6 @@ Web-додаток підключається до Redis через URL.
 
 Redis і Cloudinary залишаються зовнішніми сервісами, просто твоє додаток з ними працює через мережу.
 
-
 Перевірити список секретів
 fly secrets list
 
@@ -1528,7 +1528,7 @@ fly secrets set SECRET_KEY="..." SQLALCHEMY_DATABASE_URL="..."
 
 4️⃣ Локальний запуск
 uvicorn app.main:app --reload
- 
+
 alembic upgrade head
 
 Переконайтеся, що база даних доступна і міграції застосовані.
@@ -1549,28 +1549,32 @@ fly secrets set REDIS_URL="redis://user:pass@host:port"
 ### Контакти
 
 # DATABASE
+
 SQLALCHEMY_DATABASE_URL=postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 
 # AUTH
-SECRET_KEY=твій_секретний_ключ
+
+SECRET*KEY=твій*секретний_ключ
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 EXPIRE_MINUTES=60
 
 # MAIL
-MAIL_USERNAME=твоє_ім'я_юзера
-MAIL_PASSWORD=твій_пароль
-MAIL_FROM=твоя_пошта
+
+MAIL*USERNAME=твоє*ім'я*юзера
+MAIL_PASSWORD=твій*пароль
+MAIL*FROM=твоя*пошта
 MAIL_PORT=587
 MAIL_SERVER=smtp.gmail.com
 
 # REDIS
+
 REDIS_URL=redis://default:a9074adb8fb547d996908034247e4ff0@fly-cold-dew-5968.upstash.io:6379
 
 # CLOUDINARY
-CLOUDINARY_NAME=твоє_ім'я_Cloudinary
+
+CLOUDINARY*NAME=твоє*ім'я_Cloudinary
 CLOUDINARY_API_KEY=твій_API_key
 CLOUDINARY_API_SECRET=твій_API_secret
-
 
 ### Контакти
