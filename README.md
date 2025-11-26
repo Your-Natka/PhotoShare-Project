@@ -1,6 +1,139 @@
 # Project "PhotoShare" 📷
+# Запусти в хмарному середовищі 
+
+✅ КРОК 1. Перевіряємо, що в тебе встановлено Fly CLI
+
+У терміналі:
+
+flyctl version
+
+Якщо не знайдено — встанови:
+
+macOS:
+
+brew install flyctl
+
+✅ КРОК 2. Логін у Fly.io
+flyctl auth login
+
+Відкриється браузер — підтверди.
+
+✅ КРОК 3. Перевіряємо, що у тебе є додаток на Fly.io
+flyctl apps list
+
+Там має бути щось типу:
+
+MacBook-Pro-Natala:PhotoShare-Project natalabodnarcuk$ flyctl apps list
+NAME                    OWNER           STATUS          LATEST DEPLOY 
+photoshare-project-1    personal        deployed        Nov 24 2025 18:51
+
+✅ КРОК 4. Перевіряємо та оновлюємо секрети Fly.io
+
+flyctl secrets list
+
+Після цього перевіряємо:
+flyctl secrets list
+
+✅ КРОК 5. Перевіряємо PostgreSQL у Neon
+
+Зайди сюди: https://console.neon.tech
+
+✅ КРОК 6. Перевіряємо Redis у Upstash
+
+Зайди сюди: https://console.upstash.com
+
+У вкладці Redis знайди свій інстанс.
+
+Перевір, чи URL збігається з твоїм:
+
+redis://default:пароль@host:6379
+
+flyctl secrets list --decode
+
+Подивитися секрети у Fly.io через SSH
+1. Увійди в машину:
+flyctl ssh console --app photoshare-project-1
+
+2. У контейнері введи:
+printenv | grep SQL
+printenv | grep REDIS
 
 
+Ти побачиш реальні значення:
+
+SQLALCHEMY_DATABASE_URL=postgresql://...
+
+REDIS_URL=redis://...
+Виходимо з SSH
+
+У терміналі:
+
+exit
+
+✅ КРОК 7. Піднімаємо машину на Fly.io
+flyctl deploy
+
+✅ КРОК 8. Виконуємо міграції 
+Запускається автоматично
+
+✅ КРОК 9. Перевіряємо логи бекенда
+flyctl logs
+
+Подивитися всі машини
+Виконай:
+flyctl machines list --app photoshare-project-1
+
+1️⃣ Підключення через psql
+
+Використовуємо URL з .env:
+
+SQLALCHEMY_DATABASE_URL=postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+
+Команда:
+
+psql "postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+psql "postgresql://neondb_owner:npg_8LmWbOHC3syT@ep-round-snow-adrv766l-
+pooler.c-2.us-east-1.aws.neon.tech/neondb?
+sslmode=require&channel_binding=require"
+
+Якщо все підключилось — отримаєш промпт:
+
+neondb=>
+
+2️⃣ Перегляд усіх таблиць
+\dt
+
+
+Якщо хочеш побачити в конкретній схемі (часто public):
+
+\dt public.*
+
+3️⃣ Перегляд даних у таблиці users
+SELECT * FROM users;
+
+4️⃣ Перегляд структури таблиці
+\d users
+
+✅ КРОК 10. Тестуємо API
+
+Подивись URL свого додатку:
+
+flyctl info
+
+Відкрий у браузері:
+https://photoshare-project-1.fly.dev/
+
+✅ КРОК 11. Вийти з інтерактивної сесії Fly CLI
+
+exit
+Це завершить поточну CLI-сесію.
+
+Очистити локальні конфігурації Fly
+
+flyctl auth logout
+Це розлогінить з Fly CLI.
 
 # Запусти локально
 
