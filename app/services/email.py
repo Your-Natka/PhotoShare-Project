@@ -72,7 +72,7 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
 
     # Відправка листа на підтвердження email
     background_tasks.add_task(send_email, new_user.email, new_user.username, request.base_url)
-    return {"user": new_user, "detail": SUCCESS_CREATE_USER}
+    return {"user": new_user, "detail": "User successfully created"}
 
 
 # --- Confirm email ---

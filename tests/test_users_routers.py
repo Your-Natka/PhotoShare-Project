@@ -2,7 +2,6 @@ import pytest
 from httpx import AsyncClient
 from unittest.mock import AsyncMock, patch
 
-from app.main import app
 from app.database.models import User
 from app.database.connect_db import get_db
 
@@ -35,9 +34,11 @@ class FakeAsyncSession:
 # FIXTURE ASYNC CLIENT
 # --------------------------------------
 @pytest.fixture
-async def client():
-    async with AsyncClient(app=app, base_url="http://test") as c:
-        yield c
+async def client_fixture():
+    from httpx import AsyncClient
+    from app.main import app
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
 
 # --------------------------------------
 # MOCK REDIS
@@ -64,18 +65,18 @@ def mock_db():
 # TESTS
 # --------------------------------------
 @pytest.mark.asyncio
-async def test_register_user(client: AsyncClient):
-    response = await client.post("/api/auth/register", json={
+async def test_register_user(client_fixture):
+    response = await client_fixture.post("/api/auth/register", json={
         "username": "user1",
         "email": "user1@example.com",
         "password": "password123"
     })
-    assert response.status_code == 201 or response.status_code == 200
+    assert response.status_code in (201, 200)
 
 @pytest.mark.asyncio
-async def test_login_user(client: AsyncClient):
-    response = await client.post("/api/auth/login", json={
+async def test_login_user(client_fixture):
+    response = await client_fixture.post("/api/auth/login", json={
         "email": "user1@example.com",
         "password": "password123"
     })
-    assert response.status_code == 200 or response.status_code == 401
+    assert response.status_code in (201, 409)

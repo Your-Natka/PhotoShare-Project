@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from app.database.connect_db import get_db
 from app.database.models import User, UserRoleEnum
-from app.schemas import CommentModel, PostResponse, PostUpdate
+from app.schemas import CommentResponse, PostResponse, PostUpdate
 from app.repository import posts as repository_posts
 from app.services.auth import auth_service
 from app.services.roles import RoleChecker
@@ -146,7 +146,7 @@ async def read_posts_by_keyword(keyword: str, db: Session = Depends(get_db),
 # --------------------------------------------
 # COMMENTS
 # --------------------------------------------
-@router.get("/comments/all/{post_id}", response_model=List[CommentModel])
+@router.get("/comments/all/{post_id}", response_model=List[CommentResponse])
 async def read_post_comments(post_id: int, db: Session = Depends(get_db),
                              current_user: User = Depends(auth_service.get_current_user)):
     """

@@ -13,7 +13,7 @@ class UserModel(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=30)
     avatar: Optional[str] = None
-    created_at: Optional[datetime]
+    created_at: Optional[datetime] = None
 
 
 class UserUpdateModel(BaseModel):
@@ -91,7 +91,11 @@ class HashtagResponse(HashtagModel):
     """
     Відповідь з інформацією про хештег.
     """
-    pass
+    id: int
+    name: str
+    user_id: int
+    
+    model_config = {"from_attributes": True}
 
 
 class HashtagsLimited(BaseModel):
@@ -113,8 +117,9 @@ class CommentBase(BaseModel):
     text: str = Field(max_length=500)
 
 
-class CommentModel(CommentBase):
+class CommentResponse(CommentBase):
     id: int
+    text: str
     user_id: int
     post_id: int
     created_at: datetime
@@ -123,12 +128,11 @@ class CommentModel(CommentBase):
     model_config = {"from_attributes": True}
 
 
-class CommentUpdate(CommentModel):
+class CommentUpdate(BaseModel):
     """
     Модель для оновлення коментаря.
     """
-    update_status: bool = True
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    text: str = Field(max_length=500)
 
     model_config = {"from_attributes": True}
 

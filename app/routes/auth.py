@@ -46,7 +46,7 @@ async def signup(
     body.password = auth_service.get_password_hash(body.password)
     new_user = await repository_users.create_user(body, db)
     background_tasks.add_task(send_email, new_user.email, new_user.username, request.base_url)
-    return {"user": new_user, "detail": SUCCESS_CREATE_USER}
+    return {"user": new_user, "detail": "User successfully created"}
 
 
 @router.post("/login", response_model=TokenModel)

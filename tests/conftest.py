@@ -1,30 +1,34 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from httpx import AsyncClient
-
-from app.main import app
 from app.database.connect_db import get_db
 
 # --------------------------------------
 # MOCK ASYNC DB SESSION
 # --------------------------------------
+class FakeQuery:
+    def __init__(self, users):
+        self._users = users
+
+    def filter(self, condition):
+        # Проста перевірка на email
+        self._users = [u for u in self._users if getattr(u, "email", None) == condition.right.value]
+        return self
+
+    def first(self):
+        return self._users[0] if self._users else None
+
+    def count(self):
+        return len(self._users)
+
 class FakeAsyncSession:
     def __init__(self):
         self.users = []
-        self.posts = []
-        self.comments = []
-        self.ratings = []
 
-    async def execute(self, query):
-        class Result:
-            def scalar_one_or_none(inner_self):
-                if self.users:
-                    return self.users[0]
-                return None
+    def query(self, model):
+        return FakeQuery(self.users)
 
-            def fetchall(inner_self):
-                return []
-        return Result()
+    async def add(self, obj):
+        self.users.append(obj)
 
     async def commit(self):
         pass
@@ -32,19 +36,19 @@ class FakeAsyncSession:
     async def refresh(self, obj):
         pass
 
-    async def close(self):
-        pass
+@pytest.fixture
+def fake_db():
+    return FakeAsyncSession()
 
 # --------------------------------------
 # FIXTURE ASYNC CLIENT
 # --------------------------------------
 @pytest.fixture
 async def client():
-    """
-    Асинхронний HTTP-клієнт для тестів.
-    """
-    async with AsyncClient(app=app, base_url="http://test") as c:
-        yield c
+    from httpx import AsyncClient
+    from app.main import app
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
 
 # --------------------------------------
 # MOCK REDIS
