@@ -169,6 +169,8 @@ async def update_post(body: PostUpdate, post_id: int, db: Session = Depends(get_
     post = await repository_posts.update_post(post_id, body, current_user, db)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=NOT_FOUND)
+    if post.user_id != current_user.id and current_user.role != UserRoleEnum.admin:
+        raise HTTPException(status_code=403, detail="Operation forbidden")
     return serialize_hashtags(post)
 
 # --------------------------------------------
@@ -183,6 +185,8 @@ async def remove_post(post_id: int, db: Session = Depends(get_db),
     post = await repository_posts.remove_post(post_id, current_user, db)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=NOT_FOUND)
+    if post.user_id != current_user.id and current_user.role != UserRoleEnum.admin:
+        raise HTTPException(status_code=403, detail="Operation forbidden")
     return serialize_hashtags(post)
 
 async def rate_limiter(*args, **kwargs):
