@@ -1,9 +1,12 @@
 import pytest
 from httpx import AsyncClient
 from unittest.mock import AsyncMock, patch
+import pytest_asyncio
 
-from app.database.models import User
-from app.database.connect_db import get_db
+
+class Obj:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
 
 # --------------------------------------
 # MOCK DATABASE SESSION
@@ -33,9 +36,9 @@ class FakeAsyncSession:
 # --------------------------------------
 # FIXTURE ASYNC CLIENT
 # --------------------------------------
-@pytest.fixture
+
+@pytest_asyncio.fixture
 async def client_fixture():
-    from httpx import AsyncClient
     from app.main import app
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
@@ -64,19 +67,85 @@ def mock_db():
 # --------------------------------------
 # TESTS
 # --------------------------------------
+
 @pytest.mark.asyncio
 async def test_register_user(client_fixture):
-    response = await client_fixture.post("/api/auth/register", json={
-        "username": "user1",
-        "email": "user1@example.com",
-        "password": "password123"
-    })
-    assert response.status_code in (201, 200)
+    with patch("app.repository.users.get_user_by_email",
+               new_callable=AsyncMock) as mock_get:
+
+        mock_get.return_value = None  # користувача не існує
+
+        with patch("app.services.auth.auth_service.get_password_hash",
+                   return_value="hashed_password"):
+
+            with patch("app.repository.users.create_user",
+                       new_callable=AsyncMock) as mock_create:
+
+                
+                mock_create.return_value = Obj(
+                    id=1,
+                    username="user1",
+                    email="user1@example.com",
+                    password="hashed_password",
+                    avatar=None,            
+                    role="User",            
+                    created_at="2025-01-01T00:00:00"  
+                )
+
+                response = await client_fixture.post(
+                    "/api/auth/signup",
+                    json={
+                        "username": "user1",
+                        "email": "user1@example.com",
+                        "password": "password123"
+                    }
+                )
+
+    assert response.status_code in (200, 201)
+    data = response.json()
+
+    assert data["user"]["email"] == "user1@example.com"
+    assert data["user"]["username"] == "user1"
+
+
 
 @pytest.mark.asyncio
 async def test_login_user(client_fixture):
-    response = await client_fixture.post("/api/auth/login", json={
-        "email": "user1@example.com",
-        "password": "password123"
-    })
-    assert response.status_code in (201, 409)
+    with patch("app.repository.users.get_user_by_email",
+               new_callable=AsyncMock) as mock_get:
+
+        mock_get.return_value = Obj(
+            id=1,
+            email="user1@example.com",
+            username="user1",   
+            password="hashed_password",
+            is_active=True,
+            is_verify=True
+        )
+
+        with patch("app.services.auth.auth_service.verify_password",
+                   return_value=True):
+
+            with patch("app.services.auth.auth_service.create_access_token",
+                       return_value="access_token"):
+
+                with patch("app.services.auth.auth_service.create_refresh_token",
+                           return_value="refresh_token"):
+
+                    with patch("app.repository.users.update_token",
+                               new_callable=AsyncMock):
+
+                        response = await client_fixture.post(
+                            "/api/auth/login",
+                            data={
+                                "username": "user1@example.com",
+                                "password": "password123"
+                            }
+                        )
+
+    assert response.status_code in (200, 201)
+    data = response.json()
+
+    assert data["access_token"] == "access_token"
+    assert data["refresh_token"] == "refresh_token"
+    assert data["token_type"] == "bearer"
