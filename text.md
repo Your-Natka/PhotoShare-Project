@@ -160,7 +160,13 @@ exit
 Очистити локальні конфігурації Fly
 
 flyctl auth logout
+
+На macOS інколи треба ще:
+
+rm ~/.fly/access_tokens.json
+
 Це розлогінить з Fly CLI.
+
 
 # Запусти локально
 
