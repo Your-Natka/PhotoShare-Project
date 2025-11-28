@@ -9,7 +9,7 @@ class UserModel(BaseModel):
     """
     Модель для створення користувача.
     """
-    username: str = Field(min_length=5, max_length=25)
+    username: str = Field(min_length=3, max_length=25)
     email: EmailStr
     password: str = Field(min_length=6, max_length=30)
     avatar: Optional[str] = None
