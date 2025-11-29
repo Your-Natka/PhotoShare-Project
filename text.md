@@ -112,6 +112,8 @@ neondb=>
 
 3️⃣ Перегляд даних у таблиці users
 
+natusia10.100@gmail.com
+
 SELECT * FROM users;
 
 SELECT id, username, email, role, created_at, token FROM users;
