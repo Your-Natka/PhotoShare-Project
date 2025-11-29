@@ -111,9 +111,15 @@ neondb=>
 \dt
 
 3️⃣ Перегляд даних у таблиці users
-SELECT \* FROM users;
+
+SELECT * FROM users;
 
 SELECT id, username, email, role, created_at, token FROM users;
+
+Щоб усі гарно служити можна зробити спочатку команду:
+\x auto
+А наступну вже: 
+SELECT * FROM users ORDER BY id;
 
 SELECT 
     u.id,
