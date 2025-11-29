@@ -90,7 +90,11 @@ transformed_url — URL трансформованого зображення
 "use_filter": false
 },
 "resize": {
-"use_filter": false
+"use_filter": true,
+"crop": true,
+"fill": false,
+"height": 400,
+"width": 400
 },
 "text": {
 "use_filter": false

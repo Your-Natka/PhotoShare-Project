@@ -32,7 +32,20 @@ app.include_router(comment_router, prefix='/api')
 app.include_router(rating_router, prefix='/api')
 
 # --- Статика для медіа ---
-app.mount("/media", StaticFiles(directory=os.path.join("app", "media")), name="media")
+# app.mount("/media", StaticFiles(directory=os.path.join("app", "media")), name="media")
+
+# Корінь проєкту (папка, де лежать app та media)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # app/
+PROJECT_ROOT = os.path.dirname(BASE_DIR)              # ../ -> PhotoShare-Project
+
+MEDIA_DIR = os.path.join(PROJECT_ROOT, "media")
+
+# Створюємо папки, якщо їх ще немає
+os.makedirs(MEDIA_DIR, exist_ok=True)
+os.makedirs(os.path.join(MEDIA_DIR, "qrcodes"), exist_ok=True)
+
+# Монтую media
+app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
 
 # --------------------------------------------
 # ROOT ENDPOINT
